@@ -1,75 +1,91 @@
 console.log('Ingresando')
 
-const BASE_URL = "https://fakestoreapi.com/products";
+const BASE_URL = "https://fakestoreapi.com";
 
+// ====== PARSEO DE ARGUMENTOS ======
 const [, , method, resource, ...args] = process.argv;
 
+// ====== FUNCIONES CRUD ======
+
+// GET todos los productos
 async function getAllProducts() {
     try {
-        const response = await fetch(BASE_URL);
+        const response = await fetch(`${BASE_URL}/products`);
         const data = await response.json();
-        console.log("📦 Todos los productos:", data);
+
+        // console.table para ver ordenado
+        console.table(
+            data.map(({ id, title, price, category }) => ({
+                id,
+                title,
+                price,
+                category,
+            }))
+        );
     } catch (error) {
         console.error("❌ Error:", error);
     }
 }
 
+// GET producto por ID
 async function getProductById(id) {
     try {
-        const response = await fetch(`${BASE_URL}/${id}`);
-        const data = await response.json();
-        console.log("🎯 Producto encontrado:", data);
+        const response = await fetch(`${BASE_URL}/products/${id}`);
+        const { id: prodId, title, price, category } = await response.json();
+
+        console.log(`✅ Producto encontrado:`);
+        console.log(`ID: ${prodId} | ${title} | $${price} | ${category}`);
     } catch (error) {
         console.error("❌ Error:", error);
     }
 }
 
+// POST crear producto
 async function createProduct(title, price, category) {
     try {
-        const response = await fetch(BASE_URL, {
+        const newProduct = { title, price: Number(price), category };
+
+        const response = await fetch(`${BASE_URL}/products`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                title,
-                price: Number(price),
-                category
-            })
+            body: JSON.stringify({ ...newProduct }),
         });
-        const data = await response.json();
-        console.log("✅ Producto creado:", data);
+
+        const { id } = await response.json();
+        console.log(`✅ Producto creado con ID: ${id}`);
     } catch (error) {
         console.error("❌ Error:", error);
     }
 }
 
-async function deleteProduct(id) {
-    try {
-        const response = await fetch(`${BASE_URL}/${id}`, {
-            method: "DELETE"
-        });
-        const data = await response.json();
-        console.log("🗑️ Producto eliminado:", data);
-    } catch (error) {
-        console.error("❌ Error:", error);
-    }
-}
-
-
-//Actualizar Producto
-
+// PUT actualizar producto
 async function updateProduct(id, title, price, category) {
     try {
-        const response = await fetch(`${BASE_URL}/${id}`, {
+        const productUpdate = { title, price: Number(price), category };
+
+        const response = await fetch(`${BASE_URL}/products/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                title,
-                price: Number(price),
-                category
-            })
+            body: JSON.stringify({ ...productUpdate }), // spread
+        });
+
+        const { id: updatedId, title: newTitle, price: newPrice, category: newCategory } = await response.json();
+
+        console.log(`✅ Producto ${updatedId} actualizado: ${newTitle} - $${newPrice} - ${newCategory}`);
+    } catch (error) {
+        console.error("❌ Error:", error);
+    }
+}
+
+// DELETE producto
+async function deleteProduct(id) {
+    try {
+        const response = await fetch(`${BASE_URL}/products/${id}`, {
+            method: "DELETE",
         });
         const data = await response.json();
-        console.log("✅ Producto modifiado:", data);
+
+        console.log("🗑️ Producto eliminado:", data);
     } catch (error) {
         console.error("❌ Error:", error);
     }
